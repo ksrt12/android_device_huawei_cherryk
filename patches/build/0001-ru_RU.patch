@@ -1,0 +1,40 @@
+From b4d27ee80527fdf1b8381bb46862bd86f63a05bb Mon Sep 17 00:00:00 2001
+From: ksrt12 <kazakov12stepan2012@live.ru>
+Date: Sun, 16 Oct 2016 13:48:33 +0300
+Subject: [PATCH] ru_RU
+
+Change-Id: I52495c8c4c6a05b5c90033c53fee7779d4703285
+---
+ envsetup.sh                 | 2 +-
+ target/product/full_base.mk | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/envsetup.sh b/envsetup.sh
+index 3c11a22..162d275 100644
+--- a/envsetup.sh
++++ b/envsetup.sh
+@@ -2131,7 +2131,7 @@ function mka() {
+                 make -C $T -j `sysctl hw.ncpu|cut -d" " -f2` "$@"
+                 ;;
+             *)
+-                mk_timer schedtool -B -n 1 -e ionice -n 1 make -C $T -j$(cat /proc/cpuinfo | grep "^processor" | wc -l) "$@"
++                mk_timer schedtool -B -n 1 -e ionice -n 1 make $ignorbe $shdbgm -C $T -j$(cat /proc/cpuinfo | grep "^processor" | wc -l) "$@"
+                 ;;
+         esac
+ 
+diff --git a/target/product/full_base.mk b/target/product/full_base.mk
+index bac3e03..76c9fc7 100644
+--- a/target/product/full_base.mk
++++ b/target/product/full_base.mk
+@@ -24,7 +24,7 @@ PRODUCT_PACKAGES := \
+     WAPPushManager
+ 
+ # Put en_US first in the list, so make it default.
+-PRODUCT_LOCALES := en_US
++PRODUCT_LOCALES := ru_RU
+ 
+ # Get some sounds
+ $(call inherit-product-if-exists, frameworks/base/data/sounds/AllAudio.mk)
+-- 
+2.10.1
+
