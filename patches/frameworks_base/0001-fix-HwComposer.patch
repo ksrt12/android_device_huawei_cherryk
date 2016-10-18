@@ -1,0 +1,156 @@
+From 4c6dbdce4ff6803533395b4e7445e74f70a0a8e4 Mon Sep 17 00:00:00 2001
+From: ksrt12 <kazakov12stepan2012@live.ru>
+Date: Tue, 18 Oct 2016 13:50:19 +0300
+Subject: [PATCH] fix HwComposer
+
+Change-Id: I5bfec8015a56fb915ee71d40b30a082bc518f764
+---
+ core/java/android/view/SurfaceControl.java  |  9 -------
+ core/jni/android_hardware_SensorManager.cpp |  2 +-
+ core/jni/android_view_SurfaceControl.cpp    | 41 -----------------------------
+ native/android/sensor.cpp                   | 15 ++---------
+ 4 files changed, 3 insertions(+), 64 deletions(-)
+
+diff --git a/core/java/android/view/SurfaceControl.java b/core/java/android/view/SurfaceControl.java
+index e839468..10bb52a 100644
+--- a/core/java/android/view/SurfaceControl.java
++++ b/core/java/android/view/SurfaceControl.java
+@@ -58,11 +58,6 @@ public class SurfaceControl {
+     private static native void nativeSetWindowCrop(long nativeObject, int l, int t, int r, int b);
+     private static native void nativeSetLayerStack(long nativeObject, int layerStack);
+ 
+-    private static native void nativeSetBlur(long nativeObject, float blur);
+-    private static native void nativeSetBlurMaskSurface(long nativeObject, long maskLayerNativeObject);
+-    private static native void nativeSetBlurMaskSampling(long nativeObject, int blurMaskSampling);
+-    private static native void nativeSetBlurMaskAlphaThreshold(long nativeObject, float alpha);
+-
+     private static native boolean nativeClearContentFrameStats(long nativeObject);
+     private static native boolean nativeGetContentFrameStats(long nativeObject, WindowContentFrameStats outStats);
+     private static native boolean nativeClearAnimationFrameStats();
+@@ -396,7 +391,6 @@ public class SurfaceControl {
+ 
+     public void setBlur(float blur) {
+         checkNotReleased();
+-        nativeSetBlur(mNativeObject, blur);
+     }
+ 
+     public void setBlurMaskSurface(SurfaceControl maskSurface) {
+@@ -404,17 +398,14 @@ public class SurfaceControl {
+         if (maskSurface != null) {
+             maskSurface.checkNotReleased();
+         }
+-        nativeSetBlurMaskSurface(mNativeObject, maskSurface == null ? 0:maskSurface.mNativeObject);
+     }
+ 
+     public void setBlurMaskSampling(int blurMaskSampling) {
+         checkNotReleased();
+-        nativeSetBlurMaskSampling(mNativeObject, blurMaskSampling);
+     }
+ 
+     public void setBlurMaskAlphaThreshold(float alpha) {
+         checkNotReleased();
+-        nativeSetBlurMaskAlphaThreshold(mNativeObject, alpha);
+     }
+ 
+     public void hide() {
+diff --git a/core/jni/android_hardware_SensorManager.cpp b/core/jni/android_hardware_SensorManager.cpp
+index 7d0afdc..ec56507 100644
+--- a/core/jni/android_hardware_SensorManager.cpp
++++ b/core/jni/android_hardware_SensorManager.cpp
+@@ -138,7 +138,7 @@ nativeCreate
+ (JNIEnv *env, jclass clazz, jstring opPackageName)
+ {
+     ScopedUtfChars opPackageNameUtf(env, opPackageName);
+-    return (jlong) &SensorManager::getInstanceForPackage(String16(opPackageNameUtf.c_str()));
++    return (jlong) new SensorManager(String16(opPackageNameUtf.c_str()));
+ }
+ 
+ static jboolean
+diff --git a/core/jni/android_view_SurfaceControl.cpp b/core/jni/android_view_SurfaceControl.cpp
+index 7156c0f..20352eb 100644
+--- a/core/jni/android_view_SurfaceControl.cpp
++++ b/core/jni/android_view_SurfaceControl.cpp
+@@ -316,39 +316,6 @@ static void nativeSetLayerStack(JNIEnv* env, jclass clazz, jlong nativeObject, j
+     }
+ }
+ 
+-static void nativeSetBlur(JNIEnv* env, jclass clazz, jlong nativeObject, jfloat blur) {
+-    SurfaceControl* const ctrl = reinterpret_cast<SurfaceControl *>(nativeObject);
+-    status_t err = ctrl->setBlur(blur);
+-    if (err < 0 && err != NO_INIT) {
+-        doThrowIAE(env);
+-    }
+-}
+-
+-static void nativeSetBlurMaskSurface(JNIEnv* env, jclass clazz, jlong nativeObject, jlong maskLayerNativeObject) {
+-    SurfaceControl* const ctrl = reinterpret_cast<SurfaceControl *>(nativeObject);
+-    SurfaceControl* const maskLayer = reinterpret_cast<SurfaceControl *>(maskLayerNativeObject);
+-    status_t err = ctrl->setBlurMaskSurface(maskLayer);
+-    if (err < 0 && err != NO_INIT) {
+-        doThrowIAE(env);
+-    }
+-}
+-
+-static void nativeSetBlurMaskSampling(JNIEnv* env, jclass clazz, jlong nativeObject, jint blurMaskSampling) {
+-    SurfaceControl* const ctrl = reinterpret_cast<SurfaceControl *>(nativeObject);
+-    status_t err = ctrl->setBlurMaskSampling(blurMaskSampling);
+-    if (err < 0 && err != NO_INIT) {
+-        doThrowIAE(env);
+-    }
+-}
+-
+-static void nativeSetBlurMaskAlphaThreshold(JNIEnv* env, jclass clazz, jlong nativeObject, jfloat alpha) {
+-    SurfaceControl* const ctrl = reinterpret_cast<SurfaceControl *>(nativeObject);
+-    status_t err = ctrl->setBlurMaskAlphaThreshold(alpha);
+-    if (err < 0 && err != NO_INIT) {
+-        doThrowIAE(env);
+-    }
+-}
+-
+ static jobject nativeGetBuiltInDisplay(JNIEnv* env, jclass clazz, jint id) {
+     sp<IBinder> token(SurfaceComposerClient::getBuiltInDisplay(id));
+     return javaObjectForIBinder(env, token);
+@@ -647,14 +614,6 @@ static JNINativeMethod sSurfaceControlMethods[] = {
+             (void*)nativeSetWindowCrop },
+     {"nativeSetLayerStack", "(JI)V",
+             (void*)nativeSetLayerStack },
+-    {"nativeSetBlur", "(JF)V",
+-            (void*)nativeSetBlur },
+-    {"nativeSetBlurMaskSurface", "(JJ)V",
+-            (void*)nativeSetBlurMaskSurface },
+-    {"nativeSetBlurMaskSampling", "(JI)V",
+-            (void*)nativeSetBlurMaskSampling },
+-    {"nativeSetBlurMaskAlphaThreshold", "(JF)V",
+-            (void*)nativeSetBlurMaskAlphaThreshold },
+     {"nativeGetBuiltInDisplay", "(I)Landroid/os/IBinder;",
+             (void*)nativeGetBuiltInDisplay },
+     {"nativeCreateDisplay", "(Ljava/lang/String;Z)Landroid/os/IBinder;",
+diff --git a/native/android/sensor.cpp b/native/android/sensor.cpp
+index 76c701a..c550f68 100644
+--- a/native/android/sensor.cpp
++++ b/native/android/sensor.cpp
+@@ -38,19 +38,8 @@ using android::String8;
+ using android::String16;
+ 
+ /*****************************************************************************/
+-ASensorManager* ASensorManager_getInstance()
+-{
+-    return ASensorManager_getInstanceForPackage(NULL);
+-}
+-
+-ASensorManager* ASensorManager_getInstanceForPackage(const char* packageName)
+-{
+-    if (packageName) {
+-        return &SensorManager::getInstanceForPackage(String16(packageName));
+-    } else {
+-        return &SensorManager::getInstanceForPackage(String16());
+-    }
+-}
++android::Mutex android::SensorManager::sLock;
++std::map<String16, SensorManager*> android::SensorManager::sPackageInstances;
+ 
+ int ASensorManager_getSensorList(ASensorManager* manager,
+         ASensorList* list)
+-- 
+2.10.1
+
