@@ -1,0 +1,60 @@
+From 072a0927563832c1353ad04f67c5c863456a7d6b Mon Sep 17 00:00:00 2001
+From: ksrt12 <kazakov12stepan2012@live.ru>
+Date: Sun, 22 Jan 2017 15:32:35 +0300
+Subject: [PATCH] fix
+
+Change-Id: Ia1dd189f21c21de8cb099ad3350e8b883359d14a
+---
+ Android.mk => AndroidKernel.mk                                |  0
+ .../boot_images_verifier/{Android.mk => AndroidKernel.mk}     |  0
+ scripts/setlocalversion                                       | 11 -----------
+ tools/gator/daemon/{Android.mk => AndroidKernel.mk}           |  0
+ 4 files changed, 11 deletions(-)
+ rename Android.mk => AndroidKernel.mk (100%)
+ rename drivers/hisi/secure_boot/boot_images_verifier/{Android.mk => AndroidKernel.mk} (100%)
+ rename tools/gator/daemon/{Android.mk => AndroidKernel.mk} (100%)
+
+diff --git a/Android.mk b/AndroidKernel.mk
+similarity index 100%
+rename from Android.mk
+rename to AndroidKernel.mk
+diff --git a/drivers/hisi/secure_boot/boot_images_verifier/Android.mk b/drivers/hisi/secure_boot/boot_images_verifier/AndroidKernel.mk
+similarity index 100%
+rename from drivers/hisi/secure_boot/boot_images_verifier/Android.mk
+rename to drivers/hisi/secure_boot/boot_images_verifier/AndroidKernel.mk
+diff --git a/scripts/setlocalversion b/scripts/setlocalversion
+index 84b88f10..7803d596 100755
+--- a/scripts/setlocalversion
++++ b/scripts/setlocalversion
+@@ -74,11 +74,6 @@ scm_version()
+ 		# Update index only on r/w media
+ 		[ -w . ] && git update-index --refresh --unmerged > /dev/null
+ 
+-		# Check for uncommitted changes
+-		if git diff-index --name-only HEAD | grep -qv "^scripts/package"; then
+-			printf '%s' -dirty
+-		fi
+-
+ 		# All done with git
+ 		return
+ 	fi
+@@ -97,12 +92,6 @@ scm_version()
+ 			fi
+ 		fi
+ 
+-		# Are there uncommitted changes?
+-		# These are represented by + after the changeset id.
+-		case "$hgid" in
+-			*+|*+\ *) printf '%s' -dirty ;;
+-		esac
+-
+ 		# All done with mercurial
+ 		return
+ 	fi
+diff --git a/tools/gator/daemon/Android.mk b/tools/gator/daemon/AndroidKernel.mk
+similarity index 100%
+rename from tools/gator/daemon/Android.mk
+rename to tools/gator/daemon/AndroidKernel.mk
+-- 
+2.11.0
+
