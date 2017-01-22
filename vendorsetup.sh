@@ -20,4 +20,11 @@
 # In particular, you can add lunch options with the add_lunch_combo
 # function: add_lunch_combo generic-eng
 
+# Patches
+if [ ! -e device/huawei/cherryplus/patches/ok ]
+then
+sh device/huawei/cherryplus/patches/apply.sh
+touch device/huawei/msm7x27a-common/patches/ok
+fi
+export KBUILD_BUILD_VERSION=1
 add_lunch_combo lineage_cherryplus-userdebug

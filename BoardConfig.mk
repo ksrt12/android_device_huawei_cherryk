@@ -78,7 +78,7 @@ SUPERUSER_PACKAGE := com.sys.superuser
 SUPERUSER_EMBEDDED := true
 
 #OTA
-TARGET_OTA_ASSERT_DEVICE := hi6210sft,ALE-L21,hwALE,Che2-L11,cherryplusPlus
+TARGET_OTA_ASSERT_DEVICE := hi6210sft,ALE-L21,hwALE,Che2-L11,cherryplus,CherryPlus
 
 # enable to use the CPUSETS feature
 ENABLE_CPUSETS := true
